@@ -405,6 +405,7 @@ public final class Loader implements LoaderErrorThrower {
         }
       } catch (InterruptedException e) {
         // The load was canceled.
+        canceled = true;
         Assertions.checkState(canceled);
         if (!released) {
           sendEmptyMessage(MSG_END_OF_SOURCE);

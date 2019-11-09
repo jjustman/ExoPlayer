@@ -15,6 +15,8 @@
  */
 package com.google.android.exoplayer2.source.chunk;
 
+import android.util.Log;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.extractor.DefaultExtractorInput;
@@ -25,6 +27,8 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -111,21 +115,28 @@ public class ContainerMediaChunk extends BaseMediaChunk {
   @SuppressWarnings("NonAtomicVolatileUpdate")
   @Override
   public final void load() throws IOException, InterruptedException {
-    DataSpec loadDataSpec = dataSpec.subrange(nextLoadPosition);
+    DataSpec loadDataSpec = null;
+    try {
+      loadDataSpec = dataSpec.subrange(nextLoadPosition);
+    } catch (Exception ex) {
+      Log.w("ContainerMediaChunk",String.format("catching fileNotFoundException for local periodic dash error handling, ex: %s", ex));
+
+      loadCanceled = true;
+    }
     try {
       // Create and open the input.
       ExtractorInput input = new DefaultExtractorInput(dataSource,
-          loadDataSpec.absoluteStreamPosition, dataSource.open(loadDataSpec));
+              loadDataSpec.absoluteStreamPosition, dataSource.open(loadDataSpec));
       if (nextLoadPosition == 0) {
         // Configure the output and set it as the target for the extractor wrapper.
         BaseMediaChunkOutput output = getOutput();
         output.setSampleOffsetUs(sampleOffsetUs);
         extractorWrapper.init(
-            getTrackOutputProvider(output),
-            clippedStartTimeUs == C.TIME_UNSET
-                ? C.TIME_UNSET
-                : (clippedStartTimeUs - sampleOffsetUs),
-            clippedEndTimeUs == C.TIME_UNSET ? C.TIME_UNSET : (clippedEndTimeUs - sampleOffsetUs));
+                getTrackOutputProvider(output),
+                clippedStartTimeUs == C.TIME_UNSET
+                        ? C.TIME_UNSET
+                        : (clippedStartTimeUs - sampleOffsetUs),
+                clippedEndTimeUs == C.TIME_UNSET ? C.TIME_UNSET : (clippedEndTimeUs - sampleOffsetUs));
       }
       // Load and decode the sample data.
       try {
@@ -138,6 +149,10 @@ public class ContainerMediaChunk extends BaseMediaChunk {
       } finally {
         nextLoadPosition = input.getPosition() - dataSpec.absoluteStreamPosition;
       }
+    } catch (Exception ex) {
+      Log.w("ContainerMediaChunk",String.format("catching fileNotFoundException for local periodic dash error handling, ex: %s", ex));
+        loadCanceled = true;
+        throw new InterruptedException("jj");
     } finally {
       Util.closeQuietly(dataSource);
     }

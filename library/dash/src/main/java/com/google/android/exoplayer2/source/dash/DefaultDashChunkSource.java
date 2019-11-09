@@ -346,7 +346,8 @@ public class DefaultDashChunkSource implements DashChunkSource {
             lastAvailableSegmentNum);
     if (segmentNum < firstAvailableSegmentNum) {
       // This is before the first chunk in the current manifest.
-      fatalError = new BehindLiveWindowException();
+      //jjustman-2019-11-08 - do not throw behindLiveWindowException for ROUTE/DASH
+      // fatalError = new BehindLiveWindowException();
       return;
     }
 
