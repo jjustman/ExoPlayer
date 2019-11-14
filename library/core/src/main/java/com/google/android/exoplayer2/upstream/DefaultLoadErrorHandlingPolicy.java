@@ -89,7 +89,7 @@ public class DefaultLoadErrorHandlingPolicy implements LoadErrorHandlingPolicy {
             || exception instanceof FileNotFoundException
             || exception instanceof UnexpectedLoaderException
         ? C.TIME_UNSET
-        : Math.min((errorCount - 1) * 1000, 5000);
+        : Math.min((errorCount - 1) * 1000, 1000);
   }
 
   /**

@@ -60,7 +60,7 @@ public final class BufferSizeAdaptationBuilder {
    * The default minimum duration of media that the player will attempt to ensure is buffered at all
    * times, in milliseconds.
    */
-  public static final int DEFAULT_MIN_BUFFER_MS = 15000;
+  public static final int DEFAULT_MIN_BUFFER_MS = 1000;
 
   /**
    * The default maximum duration of media that the player will attempt to buffer, in milliseconds.

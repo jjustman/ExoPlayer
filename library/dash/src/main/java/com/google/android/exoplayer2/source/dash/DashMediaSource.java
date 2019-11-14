@@ -342,7 +342,7 @@ public final class DashMediaSource extends BaseMediaSource {
    * The default presentation delay for live streams. The presentation delay is the duration by
    * which the default start position precedes the end of the live window.
    */
-  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 30000;
+  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 1000;
   /** @deprecated Use {@link #DEFAULT_LIVE_PRESENTATION_DELAY_MS}. */
   @Deprecated
   public static final long DEFAULT_LIVE_PRESENTATION_DELAY_FIXED_MS =
@@ -359,7 +359,7 @@ public final class DashMediaSource extends BaseMediaSource {
   /**
    * The minimum default start position for live streams, relative to the start of the live window.
    */
-  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 5000000;
+  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 1000000;
 
   private static final String TAG = "DashMediaSource";
 
@@ -1021,7 +1021,7 @@ public final class DashMediaSource extends BaseMediaSource {
           // minimumUpdatePeriod is set to 0. In such cases we shouldn't refresh unless there is
           // explicit signaling in the stream, according to:
           // http://azure.microsoft.com/blog/2014/09/13/dash-live-streaming-with-azure-media-service
-          minUpdatePeriodMs = 5000;
+          minUpdatePeriodMs = 1000;
         }
         long nextLoadTimestampMs = manifestLoadStartTimestampMs + minUpdatePeriodMs;
         long delayUntilNextLoadMs =
@@ -1056,7 +1056,7 @@ public final class DashMediaSource extends BaseMediaSource {
   }
 
   private long getManifestLoadRetryDelayMillis() {
-    return Math.min((staleManifestReloadAttempt - 1) * 1000, 5000);
+    return Math.min((staleManifestReloadAttempt - 1) * 1000, 1000);
   }
 
   private <T> void startLoading(ParsingLoadable<T> loadable,
