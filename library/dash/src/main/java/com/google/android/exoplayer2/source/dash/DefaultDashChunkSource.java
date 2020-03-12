@@ -50,6 +50,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException;
 import com.google.android.exoplayer2.upstream.LoaderErrorThrower;
 import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
@@ -759,8 +760,11 @@ public class DefaultDashChunkSource implements DashChunkSource {
         long liveEdgeTimeUs = nowUnixTimeUs - C.msToUs(manifest.availabilityStartTimeMs);
         long periodStartUs = C.msToUs(manifest.getPeriod(periodIndex).startMs);
         long liveEdgeTimeInPeriodUs = liveEdgeTimeUs - periodStartUs;
-        long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
-        return Math.max(
+
+          long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
+          Log.w("DefaultDashChunkSource", String.format("::getFirstAvailableSegmentNum - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));
+
+          return Math.max(
             getFirstSegmentNum(), getSegmentNum(liveEdgeTimeInPeriodUs - bufferDepthUs));
       }
       return getFirstSegmentNum();

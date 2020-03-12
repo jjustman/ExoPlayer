@@ -952,7 +952,9 @@ public final class DashMediaSource extends BaseMediaSource {
       currentEndTimeUs = Math.min(liveStreamEndPositionInLastPeriodUs, currentEndTimeUs);
       if (manifest.timeShiftBufferDepthMs != C.TIME_UNSET) {
         long timeShiftBufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
-        long offsetInPeriodUs = currentEndTimeUs - timeShiftBufferDepthUs;
+          Log.w(TAG, String.format("::processManifest - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));
+
+          long offsetInPeriodUs = currentEndTimeUs - timeShiftBufferDepthUs;
         int periodIndex = lastPeriodIndex;
         while (offsetInPeriodUs < 0 && periodIndex > 0) {
           offsetInPeriodUs += manifest.getPeriodDurationUs(--periodIndex);
