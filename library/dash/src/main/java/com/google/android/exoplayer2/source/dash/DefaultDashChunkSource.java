@@ -762,7 +762,9 @@ public class DefaultDashChunkSource implements DashChunkSource {
         long liveEdgeTimeInPeriodUs = liveEdgeTimeUs - periodStartUs;
 
           long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
-          Log.w("DefaultDashChunkSource", String.format("::getFirstAvailableSegmentNum - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));
+
+          //jjustman-2020-03-11 - uncomment for exoplayer performance validation of timeShiftBufferDepthMs as 1000ms for exoplayer performance debugging:
+          //Log.w("DefaultDashChunkSource", String.format("::getFirstAvailableSegmentNum - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));
 
           return Math.max(
             getFirstSegmentNum(), getSegmentNum(liveEdgeTimeInPeriodUs - bufferDepthUs));

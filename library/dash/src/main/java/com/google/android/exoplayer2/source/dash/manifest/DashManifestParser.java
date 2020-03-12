@@ -99,7 +99,8 @@ public class DashManifestParser extends DefaultHandler
       String baseUrl) throws XmlPullParserException, IOException {
     long availabilityStartTime = parseDateTime(xpp, "availabilityStartTime", C.TIME_UNSET);
     long durationMs = parseDuration(xpp, "mediaPresentationDuration", C.TIME_UNSET);
-    long minBufferTimeMs = 1000; //jjustman-2020-02-28 - parseDuration(xpp, "minBufferTime", C.TIME_UNSET);
+    long minBufferTimeMs = 1000; //jjustman-2020-03-11 - changed from 1000 to 0 for testing
+      // jjustman-2020-02-28 - parseDuration(xpp, "minBufferTime", C.TIME_UNSET);
     String typeString = xpp.getAttributeValue(null, "type");
     boolean dynamic = typeString != null && "dynamic".equals(typeString);
     long minUpdateTimeMs = 1000;
@@ -108,7 +109,7 @@ public class DashManifestParser extends DefaultHandler
       //  : C.TIME_UNSET;
     long timeShiftBufferDepthMs = 1000; //jjustman-2020-02-28 - dynamic
         //? parseDuration(xpp, "timeShiftBufferDepth", C.TIME_UNSET) : C.TIME_UNSET;
-    long suggestedPresentationDelayMs = 1000; //
+    long suggestedPresentationDelayMs = 0;
       // dynamic
       //jjustman-2020-02-28  ? parseDuration(xpp, "suggestedPresentationDelay", C.TIME_UNSET) : C.TIME_UNSET;
     long publishTimeMs = parseDateTime(xpp, "publishTime", C.TIME_UNSET);

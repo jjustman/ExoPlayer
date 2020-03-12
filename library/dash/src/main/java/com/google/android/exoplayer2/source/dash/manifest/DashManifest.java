@@ -172,7 +172,7 @@ public class DashManifest implements FilterableManifest<DashManifest> {
     this.availabilityStartTimeMs = availabilityStartTimeMs;
     this.durationMs = durationMs;
     //jjustman-2020-03-11 - fix minBufferTimeMS to 1000ms
-    this.minBufferTimeMs = 1000; //minBufferTimeMs;
+    this.minBufferTimeMs = 1000; //minBufferTimeMS - jjustman-2020-03-11 - set to 0?
     this.dynamic = true; //dynamic;
     this.minUpdatePeriodMs = minUpdatePeriodMs;
     this.timeShiftBufferDepthMs = 1000;
