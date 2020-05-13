@@ -26,12 +26,12 @@ import java.io.IOException;
 public class DefaultLoadErrorHandlingPolicy implements LoadErrorHandlingPolicy {
 
   /** The default minimum number of times to retry loading data prior to propagating the error. */
-  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT = 3;
+  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT = 20;
   /**
    * The default minimum number of times to retry loading prior to failing for progressive live
    * streams.
    */
-  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT_PROGRESSIVE_LIVE = 6;
+  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT_PROGRESSIVE_LIVE = 20;
   /** The default duration for which a track is blacklisted in milliseconds. */
   public static final long DEFAULT_TRACK_BLACKLIST_MS = 60000;
 

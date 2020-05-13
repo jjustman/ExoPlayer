@@ -342,7 +342,7 @@ public final class DashMediaSource extends BaseMediaSource {
    * The default presentation delay for live streams. The presentation delay is the duration by
    * which the default start position precedes the end of the live window.
    */
-  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 1000;
+  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 100;
   /** @deprecated Use {@link #DEFAULT_LIVE_PRESENTATION_DELAY_MS}. */
   @Deprecated
   public static final long DEFAULT_LIVE_PRESENTATION_DELAY_FIXED_MS =
@@ -359,7 +359,7 @@ public final class DashMediaSource extends BaseMediaSource {
   /**
    * The minimum default start position for live streams, relative to the start of the live window.
    */
-  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 1000000;
+  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 100000;
 
   private static final String TAG = "DashMediaSource";
 
@@ -821,6 +821,7 @@ public final class DashMediaSource extends BaseMediaSource {
         retryDelayMs == C.TIME_UNSET
             ? Loader.DONT_RETRY_FATAL
             : Loader.createRetryAction(/* resetErrorCount= */ false, retryDelayMs);
+    Log.e("ExoPlayer.dashMediaSource.onManifestLoadError", String.format("type: %d, loadDurationMs: %d, error: %s, errorCount: %d", C.DATA_TYPE_MANIFEST, loadDurationMs, error, errorCount));
     manifestEventDispatcher.loadError(
         loadable.dataSpec,
         loadable.getUri(),
@@ -1265,8 +1266,19 @@ public final class DashMediaSource extends BaseMediaSource {
         return windowDefaultStartPositionUs;
       }
       long segmentNum = snapIndex.getSegmentNum(defaultStartPositionInPeriodUs, periodDurationUs);
-      return windowDefaultStartPositionUs + snapIndex.getTimeUs(segmentNum)
-          - defaultStartPositionInPeriodUs;
+      //jjustman-2020-05-13 - clamp this value to 0..?
+//        return Math.min(0, windowDefaultStartPositionUs + snapIndex.getTimeUs(segmentNum)
+//                - defaultStartPositionInPeriodUs);
+
+        //long getAdjustedWindowDefaultStartPositionU
+        long returnValue = windowDefaultStartPositionUs + snapIndex.getTimeUs(segmentNum)
+                - defaultStartPositionInPeriodUs;
+
+        Log.i("DashMediaSource", String.format("getAdjustedWindowDefaultStartPositionU, retuning value: %d, windowDefaultStartPositionUs: %d, snapIndex.getTimeUs(segmentNum: %d): %d, defaultStartPositionInPeriodUs: %d;",
+                returnValue, windowDefaultStartPositionUs, segmentNum, snapIndex.getTimeUs(segmentNum), defaultStartPositionInPeriodUs));
+
+        return returnValue;
+
     }
 
     @Override

@@ -166,11 +166,17 @@ import com.google.android.exoplayer2.util.StandaloneMediaClock;
     }
   }
 
+    /**
+     *
+     * jjustman-2020-05-17: SUPER HACK??
+     * @return
+     */
   private boolean isUsingRendererClock() {
     // Use the renderer clock if the providing renderer has not ended or needs the next sample
     // stream to reenter the ready state. The latter case uses the standalone clock to avoid getting
     // stuck if tracks in the current period have uneven durations.
     // See: https://github.com/google/ExoPlayer/issues/1874.
+      //false ; //
     return rendererClockSource != null && !rendererClockSource.isEnded()
         && (rendererClockSource.isReady() || !rendererClockSource.hasReadStreamToEnd());
   }

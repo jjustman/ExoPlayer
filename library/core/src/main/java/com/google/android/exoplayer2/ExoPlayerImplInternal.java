@@ -1270,6 +1270,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
       throws ExoPlaybackException {
     if (sourceRefreshInfo.source != mediaSource) {
       // Stale event.
+        Log.e("ExoPlayerImplInternal", String.format("handleSourceInfoRefreshed: sourceRefreshInfo.source: %s != mediaSource: %s", sourceRefreshInfo.source, mediaSource));
       return;
     }
     playbackInfoUpdate.incrementPendingOperationAcks(pendingPrepareCount);
@@ -1294,6 +1295,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
       if (periodPosition == null) {
         // The seek position was valid for the timeline that it was performed into, but the
         // timeline has changed and a suitable seek position could not be resolved in the new one.
+          Log.e("ExoPlayerImplInternal", String.format("handleSourceInfoRefreshed: periodPosition is NULL! dispatching handleSourceInfoRefreshEndedPlayback"));
         handleSourceInfoRefreshEndedPlayback();
         return;
       }
@@ -1315,6 +1317,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
       Object newPeriodUid = resolveSubsequentPeriod(newPeriodId.periodUid, oldTimeline, timeline);
       if (newPeriodUid == null) {
         // We failed to resolve a suitable restart position.
+          Log.e("ExoPlayerImplInternal", String.format("handleSourceInfoRefreshed: 1319 newPeriodUid is NULL! dispatching handleSourceInfoRefreshEndedPlayback"));
         handleSourceInfoRefreshEndedPlayback();
         return;
       }
@@ -1338,9 +1341,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
     if (playbackInfo.periodId.equals(newPeriodId) && oldContentPositionUs == newContentPositionUs) {
       // We can keep the current playing period. Update the rest of the queued periods.
-      if (!queue.updateQueuedPeriods(rendererPositionUs, getMaxRendererReadPositionUs())) {
-        seekToCurrentPosition(/* sendDiscontinuity= */ false);
-      }
+        if(playbackInfo.totalBufferedDurationUs > 4000000) { //|| playbackInfo.totalBufferedDurationUs == 0
+            Log.w("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - heuristic boudnary: seekToCurrentPosition: playbackInfo.totalBufferedDurationUs is over heuristic, value: %d, playbackInfo.positionUs: %d, newContentPositionUs: %d, forcing seekToCurrentPosition(true),", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs, newContentPositionUs));
+
+            if(playbackInfo.totalBufferedDurationUs == 0) {
+                playbackInfo.positionUs += 1000000; //go forward 1s?
+            } else {
+                //jjustman-2020-05-13 - major hack!
+                playbackInfo.positionUs = playbackInfo.totalBufferedDurationUs;
+            }
+
+            seekToCurrentPosition(false);
+        } else  if (!queue.updateQueuedPeriods(rendererPositionUs, getMaxRendererReadPositionUs())) {
+            Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - queueUpdatePeriods: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
+            seekToCurrentPosition(/* sendDiscontinuity= */ false);
+        } else {
+            Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - no seeking: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
+        }
     } else {
       // Something changed. Seek to new start position.
       MediaPeriodHolder periodHolder = queue.getFrontPeriod();
@@ -1353,6 +1370,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
           }
         }
       }
+
+        Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - seeking to new start position, newContentPositionUs is value: %d", newContentPositionUs));
       // Actually do the seek.
       long newPositionUs = newPeriodId.isAd() ? 0 : newContentPositionUs;
       long seekedToPositionUs = seekToPeriodPosition(newPeriodId, newPositionUs);
@@ -1820,6 +1839,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
     long totalBufferedDurationUs =
         bufferedPositionInLoadingPeriodUs - loadingPeriodHolder.toPeriodTime(rendererPositionUs);
+    Log.i("ExoPlayerImplInternal", String.format("totalBufferedDurationUs: %d, bufferedPositionInLoadingPeriodUs: %d, rendererPositionUs: %d, loadingPeriodHolder: %d", totalBufferedDurationUs, bufferedPositionInLoadingPeriodUs, rendererPositionUs, loadingPeriodHolder.toPeriodTime(rendererPositionUs)));
     return Math.max(0, totalBufferedDurationUs);
   }
 
