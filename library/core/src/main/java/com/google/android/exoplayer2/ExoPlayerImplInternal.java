@@ -1353,10 +1353,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
             seekToCurrentPosition(false);
         } else  if (!queue.updateQueuedPeriods(rendererPositionUs, getMaxRendererReadPositionUs())) {
-            Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - queueUpdatePeriods: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
+            Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - seekToCurrentPosition(false) , queueUpdatePeriods: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
             seekToCurrentPosition(/* sendDiscontinuity= */ false);
         } else {
-            Log.i("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - no seeking: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
+            //Log.d("ExoPlayerImplInternal", String.format("ExoPlayerImplInternal::handleSourceInfoRefreshed - no seeking: playbackInfo.totalBufferedDurationUs: %d, playbackInfo.positionUs: %d", playbackInfo.totalBufferedDurationUs, playbackInfo.positionUs));
         }
     } else {
       // Something changed. Seek to new start position.
@@ -1839,7 +1839,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
     long totalBufferedDurationUs =
         bufferedPositionInLoadingPeriodUs - loadingPeriodHolder.toPeriodTime(rendererPositionUs);
-    Log.i("ExoPlayerImplInternal", String.format("totalBufferedDurationUs: %d, bufferedPositionInLoadingPeriodUs: %d, rendererPositionUs: %d, loadingPeriodHolder: %d", totalBufferedDurationUs, bufferedPositionInLoadingPeriodUs, rendererPositionUs, loadingPeriodHolder.toPeriodTime(rendererPositionUs)));
+        //Log.i("ExoPlayerImplInternal", String.format("getTotalBufferedDurationUs: totalBufferedDurationUs: %d, bufferedPositionInLoadingPeriodUs: %d, rendererPositionUs: %d, loadingPeriodHolder: %d", totalBufferedDurationUs, bufferedPositionInLoadingPeriodUs, rendererPositionUs, loadingPeriodHolder.toPeriodTime(rendererPositionUs)));
     return Math.max(0, totalBufferedDurationUs);
   }
 

@@ -359,7 +359,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
       // The segment is beyond the end of the period.
         Log.w("DefaultDashChunkSource", String.format("getNextChunk with segmentNum:%d > lastAvailableSegmentNum: %d, missingLastSegment: %s", segmentNum, lastAvailableSegmentNum, missingLastSegment));
 
-        //jjustman-2020-05-13 - disable end of stream marking for route/dash
+        //jjustman-2020-05-13 - disable end of stream marking for route/dash?
         // out.endOfStream = periodEnded;
       return;
     }
