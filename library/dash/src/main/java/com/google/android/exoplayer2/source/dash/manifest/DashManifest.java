@@ -28,6 +28,38 @@ import java.util.List;
 /**
  * Represents a DASH media presentation description (mpd), as defined by ISO/IEC 23009-1:2014
  * Section 5.3.1.2.
+ *
+ * jjustman-2020-03-11 - TODO: add support for EXT_ROUTE_PRESENTATION_TIME - SCT
+ * From ATSC A/331:2020 - Section 8.1.1.3 -
+ *
+ * 8.1.1.3 Synchronization and Time
+ *
+ * ROUTE/DASH requires accurate wall clock for synchronization.
+ * Network servers for both broadcast and broadband components of a Service shall synchronize  to a common wall clock (UTC) source.
+ * GPS or other source with similar accuracy and stability shall be utilized.
+ *
+ * Several use cases of receiver presentation time are supported for MPD@type='dynamic'. These are defined as:
+ *
+ *      Earliest MDE ROUTE presentation time,
+ *      Earliest Segment level DASH Media Presentation time,
+ *      and Synchronized Segment level DASH Media Presentation timeline.
+ *
+ *      The receiver is expected to calculate the offset of presentation timeline relative to receiver wall clock for two use cases as follows:
+ *      1) Earliest MDE ROUTE presentation time:
+ *          MDE data block with T-RAP ROUTE reception time plus (EXT_ROUTE_PRESENTATION_TIME - SCT).
+ *          Initial media request based on adjusted segment availability start time per Section 5.3.9.5.3 of [57].
+ *
+ *      2) Segment level DASH Media Presentation time:
+ *          Segment request based on DASH Segment “availability start time” per the DASH-IF [12] profile
+ *          in which the receiver calculates the presentation timeline based on UTC timing given in the MPD.
+ *
+ *  Note that DASH provides a mode supporting synchronized playback among different receivers using a parameter called MPD@suggestedPresentationDelay.
+ *  Broadcast emission of MPD@suggestedPresentationDelay is optional and can be used by receivers when synchronized playback is desired.
+ *
+ *  This mode is not described here as there is no ATSC 3.0 requirement for synchronized playback across multiple devices.
+ *
+ *  Note that this mode causes an additional delay in channel change times.
+ *
  */
 public class DashManifest implements FilterableManifest<DashManifest> {
 
@@ -139,11 +171,12 @@ public class DashManifest implements FilterableManifest<DashManifest> {
       List<Period> periods) {
     this.availabilityStartTimeMs = availabilityStartTimeMs;
     this.durationMs = durationMs;
-    this.minBufferTimeMs = minBufferTimeMs;
-    this.dynamic = dynamic;
+    //jjustman-2020-03-11 - fix minBufferTimeMS to 1000ms
+    this.minBufferTimeMs = 1000; //minBufferTimeMS - jjustman-2020-03-11 - set to 0?
+    this.dynamic = true; //dynamic;
     this.minUpdatePeriodMs = minUpdatePeriodMs;
-    this.timeShiftBufferDepthMs = timeShiftBufferDepthMs;
-    this.suggestedPresentationDelayMs = suggestedPresentationDelayMs;
+    this.timeShiftBufferDepthMs = 1000;
+    this.suggestedPresentationDelayMs = 0; //jjustman-2020-03-11 - fix value to 0 for suggestedPresentationDelayMs;
     this.publishTimeMs = publishTimeMs;
     this.programInformation = programInformation;
     this.utcTiming = utcTiming;

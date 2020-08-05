@@ -592,10 +592,14 @@ import org.checkerframework.checker.nullness.compatqual.NullableType;
     } else /* the load should be retried */ {
       int extractedSamplesCount = getExtractedSamplesCount();
       boolean madeProgress = extractedSamplesCount > extractedSamplesCountAtStartOfLoad;
-      loadErrorAction =
-          configureRetry(loadable, extractedSamplesCount)
-              ? Loader.createRetryAction(/* resetErrorCount= */ madeProgress, retryDelayMs)
+
+        //jjustman-2020-05-13 - always force a retry action here
+        /*
+            ? Loader.createRetryAction(/* resetErrorCount=  madeProgress, retryDelayMs)
               : Loader.DONT_RETRY;
+         */
+        configureRetry(loadable, extractedSamplesCount);
+        loadErrorAction =  Loader.createRetryAction(/* resetErrorCount= */ true, retryDelayMs);
     }
 
     eventDispatcher.loadError(

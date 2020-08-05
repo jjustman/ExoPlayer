@@ -513,6 +513,8 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
     }
 
     if (loadErrorAction == null) {
+        Log.w("ExoPlayer:ChunkSampleStream.onLoadError", String.format("loadable.type: %d, loadDurationMs: %d, error: %s, errorCount: %d", loadable.type, loadDurationMs, error, errorCount));
+
       // The load was not cancelled. Either the load must be retried or the error propagated.
       long retryDelayMs =
           loadErrorHandlingPolicy.getRetryDelayMsFor(

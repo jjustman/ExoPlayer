@@ -2681,11 +2681,16 @@ public class DefaultTrackSelector extends MappingTrackSelector {
           normalizeUndeterminedLanguageToNull(selectedAudioLanguage) == null;
       selectedAudioLanguageScore =
           getFormatLanguageScore(format, selectedAudioLanguage, selectedAudioLanguageUndetermined);
-      isWithinConstraints =
+      isWithinConstraints = true;
+      /*
+      jjustman-2020-02-28 - hack to force subtitles to be parsed!
+
           preferredLanguageScore > 0
               || (parameters.preferredTextLanguage == null && preferredRoleFlagsScore > 0)
               || isDefault
               || (isForced && selectedAudioLanguageScore > 0);
+
+       */
     }
 
     /**

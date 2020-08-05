@@ -327,7 +327,7 @@ import com.google.android.exoplayer2.util.Assertions;
           return !removeAfter(previousPeriodHolder);
         }
       }
-
+//jjustman-2020-05-13 - TODO: this looks questionable on discontinuity
       // Use new period info, but keep old content position.
       periodHolder.info = newPeriodInfo.copyWithContentPositionUs(oldPeriodInfo.contentPositionUs);
 

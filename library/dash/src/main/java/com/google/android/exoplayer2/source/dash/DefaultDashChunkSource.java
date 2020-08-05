@@ -50,6 +50,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException;
 import com.google.android.exoplayer2.upstream.LoaderErrorThrower;
 import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 import java.io.IOException;
@@ -326,7 +327,8 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
     if (representationHolder.getSegmentCount() == 0) {
       // The index doesn't define any segments.
-      out.endOfStream = periodEnded;
+        Log.w("DefaultDashChunkSource", String.format("getNextChunk with representationHolder.getSegmentCount() == 0, periodEnded: %s", periodEnded));
+        //out.endOfStream = periodEnded;
       return;
     }
 
@@ -348,18 +350,23 @@ public class DefaultDashChunkSource implements DashChunkSource {
       // This is before the first chunk in the current manifest.
       //jjustman-2019-11-08 - do not throw behindLiveWindowException for ROUTE/DASH
       // fatalError = new BehindLiveWindowException();
-      return;
+        Log.w("DefaultDashChunkSource", String.format("segmentNum:%d < firstAvailableSegmentNum: %d, jumping to lastAvailableSegmentNum: %d", segmentNum, firstAvailableSegmentNum, lastAvailableSegmentNum));
+      segmentNum = lastAvailableSegmentNum;
     }
 
     if (segmentNum > lastAvailableSegmentNum
         || (missingLastSegment && segmentNum >= lastAvailableSegmentNum)) {
       // The segment is beyond the end of the period.
-      out.endOfStream = periodEnded;
+        Log.w("DefaultDashChunkSource", String.format("getNextChunk with segmentNum:%d > lastAvailableSegmentNum: %d, missingLastSegment: %s", segmentNum, lastAvailableSegmentNum, missingLastSegment));
+
+        //jjustman-2020-05-13 - disable end of stream marking for route/dash?
+        // out.endOfStream = periodEnded;
       return;
     }
 
     if (periodEnded && representationHolder.getSegmentStartTimeUs(segmentNum) >= periodDurationUs) {
       // The period duration clips the period to a position before the segment.
+        Log.w("DefaultDashChunkSource", String.format("periodEnded: %s && representationHolder.getSegmentStartTimeUs(segmentNum:%d):%d  >= periodDurationUs: %d", periodEnded, segmentNum, representationHolder.getSegmentEndTimeUs(segmentNum), periodDurationUs));
       out.endOfStream = true;
       return;
     }
@@ -377,7 +384,10 @@ public class DefaultDashChunkSource implements DashChunkSource {
     }
 
     long seekTimeUs = queue.isEmpty() ? loadPositionUs : C.TIME_UNSET;
-    out.chunk =
+
+      Log.w("DefaultDashChunkSource", String.format("creating newMediaChunk with seekTimeUs: %d, segmentNum: %d, maxSegmentCount: %d", seekTimeUs, segmentNum, maxSegmentCount));
+
+        out.chunk =
         newMediaChunk(
             representationHolder,
             dataSource,
@@ -440,8 +450,13 @@ public class DefaultDashChunkSource implements DashChunkSource {
         }
       }
     }
-    return blacklistDurationMs != C.TIME_UNSET
-        && trackSelection.blacklist(trackSelection.indexOf(chunk.trackFormat), blacklistDurationMs);
+
+    Boolean returnValue = blacklistDurationMs != C.TIME_UNSET
+            && trackSelection.blacklist(trackSelection.indexOf(chunk.trackFormat), blacklistDurationMs);
+
+      Log.w("DefaultDashChunkSource", String.format("onChunkLoadError: chunk: %s, exception: %s, blacklistDurationMs: %d, returnValue: %s", chunk, e.getMessage(), blacklistDurationMs, returnValue));
+
+      return returnValue;
   }
 
   // Internal methods.
@@ -485,6 +500,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
   private long resolveTimeToLiveEdgeUs(long playbackPositionUs) {
     boolean resolveTimeToLiveEdgePossible = manifest.dynamic && liveEdgeTimeUs != C.TIME_UNSET;
+    Log.i("DefaultDashChunkSource",String.format("resolveTimeToLiveEdgeUs: resolveTimeToLiveEdgePossible: %s, playbackPositionUs: %d", resolveTimeToLiveEdgePossible, playbackPositionUs));
     return resolveTimeToLiveEdgePossible ? liveEdgeTimeUs - playbackPositionUs : C.TIME_UNSET;
   }
 
@@ -759,8 +775,13 @@ public class DefaultDashChunkSource implements DashChunkSource {
         long liveEdgeTimeUs = nowUnixTimeUs - C.msToUs(manifest.availabilityStartTimeMs);
         long periodStartUs = C.msToUs(manifest.getPeriod(periodIndex).startMs);
         long liveEdgeTimeInPeriodUs = liveEdgeTimeUs - periodStartUs;
-        long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
-        return Math.max(
+
+          long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
+
+          //jjustman-2020-03-11 - uncomment for exoplayer performance validation of timeShiftBufferDepthMs as 1000ms for exoplayer performance debugging:
+          //Log.w("DefaultDashChunkSource", String.format("::getFirstAvailableSegmentNum - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));
+
+          return Math.max(
             getFirstSegmentNum(), getSegmentNum(liveEdgeTimeInPeriodUs - bufferDepthUs));
       }
       return getFirstSegmentNum();

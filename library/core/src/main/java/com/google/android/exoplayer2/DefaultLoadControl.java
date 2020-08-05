@@ -38,19 +38,19 @@ public class DefaultLoadControl implements LoadControl {
    * For playbacks with video, this is also the default minimum duration of media that the player
    * will attempt to ensure is buffered.
    */
-  public static final int DEFAULT_MAX_BUFFER_MS = 50000;
+  public static final int DEFAULT_MAX_BUFFER_MS = 1000; //50000;
 
   /**
    * The default duration of media that must be buffered for playback to start or resume following a
    * user action such as a seek, in milliseconds.
    */
-  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_MS = 1000;
+  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_MS = 100; //1000;
 
   /**
    * The default duration of media that must be buffered for playback to resume after a rebuffer, in
    * milliseconds. A rebuffer is defined to be caused by buffer depletion rather than a user action.
    */
-  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 1000;
+  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 100; //1000;
 
   /**
    * The default target buffer size in bytes. The value ({@link C#LENGTH_UNSET}) means that the load
@@ -62,10 +62,10 @@ public class DefaultLoadControl implements LoadControl {
   public static final boolean DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS = true;
 
   /** The default back buffer duration in milliseconds. */
-  public static final int DEFAULT_BACK_BUFFER_DURATION_MS = 0;
+  public static final int DEFAULT_BACK_BUFFER_DURATION_MS = 250; //0
 
   /** The default for whether the back buffer is retained from the previous keyframe. */
-  public static final boolean DEFAULT_RETAIN_BACK_BUFFER_FROM_KEYFRAME = false;
+  public static final boolean DEFAULT_RETAIN_BACK_BUFFER_FROM_KEYFRAME = true; //
 
   /** A default size in bytes for a video buffer. */
   public static final int DEFAULT_VIDEO_BUFFER_SIZE = 500 * C.DEFAULT_BUFFER_SEGMENT_SIZE;

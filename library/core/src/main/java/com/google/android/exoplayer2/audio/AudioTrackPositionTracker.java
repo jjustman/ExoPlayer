@@ -17,9 +17,12 @@ package com.google.android.exoplayer2.audio;
 
 import static com.google.android.exoplayer2.util.Util.castNonNull;
 
+import android.annotation.SuppressLint;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.os.SystemClock;
+import android.util.Log;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
@@ -124,7 +127,7 @@ import java.lang.reflect.Method;
    */
   private static final long MAX_LATENCY_US = 5 * C.MICROS_PER_SECOND;
 
-  private static final long FORCE_RESET_WORKAROUND_TIMEOUT_MS = 200;
+  private static final long FORCE_RESET_WORKAROUND_TIMEOUT_MS = 1000; //200
 
   private static final int MAX_PLAYHEAD_OFFSET_COUNT = 10;
   private static final int MIN_PLAYHEAD_OFFSET_SAMPLE_INTERVAL_US = 30000;
@@ -262,6 +265,7 @@ import java.lang.reflect.Method;
    * @param writtenFrames The number of frames that have been written.
    * @return Whether the caller can write data to the track.
    */
+  @SuppressLint("LongLogTag")
   public boolean mayHandleBuffer(long writtenFrames) {
     @PlayState int playState = Assertions.checkNotNull(audioTrack).getPlayState();
     if (needsPassthroughWorkarounds) {
@@ -284,6 +288,7 @@ import java.lang.reflect.Method;
     boolean hadData = hasData;
     hasData = hasPendingData(writtenFrames);
     if (hadData && !hasData && playState != PLAYSTATE_STOPPED && listener != null) {
+        Log.w("AudioTrackPositionTracker", String.format("invoking listener.onUnderrun: bufferSize: %d, bufferSizeMS: %d", bufferSize, C.usToMs(bufferSizeUs)));
       listener.onUnderrun(bufferSize, C.usToMs(bufferSizeUs));
     }
 
@@ -305,11 +310,14 @@ import java.lang.reflect.Method;
   }
 
   /** Returns whether the track is in an invalid state and must be recreated. */
+  @SuppressLint("LongLogTag")
   public boolean isStalled(long writtenFrames) {
-    return forceResetWorkaroundTimeMs != C.TIME_UNSET
+    boolean ret =  forceResetWorkaroundTimeMs != C.TIME_UNSET
         && writtenFrames > 0
         && SystemClock.elapsedRealtime() - forceResetWorkaroundTimeMs
             >= FORCE_RESET_WORKAROUND_TIMEOUT_MS;
+      Log.w("AudioTrackPositionTracker", String.format("isStalled: %s", ret));
+    return ret;
   }
 
   /**
@@ -322,6 +330,8 @@ import java.lang.reflect.Method;
     stopPlaybackHeadPosition = getPlaybackHeadPosition();
     stopTimestampUs = SystemClock.elapsedRealtime() * 1000;
     endPlaybackHeadPosition = writtenFrames;
+
+      Log.w("AudioTrackPositionTracker", String.format("handleEndOfStream: writtenFrames: %d", writtenFrames));
   }
 
   /**
@@ -341,6 +351,7 @@ import java.lang.reflect.Method;
    * further interaction, as the end of stream has been handled.
    */
   public boolean pause() {
+      Log.w("AudioTrackPositionTracker", String.format("pause invoked"));
     resetSyncParams();
     if (stopTimestampUs == C.TIME_UNSET) {
       // The audio track is going to be paused, so reset the timestamp poller to ensure it doesn't
@@ -393,6 +404,7 @@ import java.lang.reflect.Method;
     maybeUpdateLatency(systemTimeUs);
   }
 
+  @SuppressLint("LongLogTag")
   private void maybePollAndCheckTimestamp(long systemTimeUs, long playbackPositionUs) {
     AudioTimestampPoller audioTimestampPoller = Assertions.checkNotNull(this.audioTimestampPoller);
     if (!audioTimestampPoller.maybePollTimestamp(systemTimeUs)) {
@@ -403,7 +415,11 @@ import java.lang.reflect.Method;
     long audioTimestampSystemTimeUs = audioTimestampPoller.getTimestampSystemTimeUs();
     long audioTimestampPositionFrames = audioTimestampPoller.getTimestampPositionFrames();
     if (Math.abs(audioTimestampSystemTimeUs - systemTimeUs) > MAX_AUDIO_TIMESTAMP_OFFSET_US) {
-      listener.onSystemTimeUsMismatch(
+        Log.w("AudioTrackPositionTracker", String.format("before rejectTimestamp: rejecting audioTimestampPolller due to (audioTimestampSystemTimeUs:%d - systemTimeUs:%d):%d > MAX_AUDIO_TIMESTAMP_OFFSET_US:%d!",
+                audioTimestampSystemTimeUs, systemTimeUs, Math.abs(audioTimestampSystemTimeUs - systemTimeUs),  MAX_AUDIO_TIMESTAMP_OFFSET_US
+                ));
+
+        listener.onSystemTimeUsMismatch(
           audioTimestampPositionFrames,
           audioTimestampSystemTimeUs,
           systemTimeUs,
@@ -411,6 +427,10 @@ import java.lang.reflect.Method;
       audioTimestampPoller.rejectTimestamp();
     } else if (Math.abs(framesToDurationUs(audioTimestampPositionFrames) - playbackPositionUs)
         > MAX_AUDIO_TIMESTAMP_OFFSET_US) {
+
+        Log.w("AudioTrackPositionTracker", String.format("before onPositionFramesMismatch: rejecting audioTimestampPolller due to (framesToDurationUs(audioTimestampPositionFrames:%d):%d - playbackPositionUs:%d):%d > MAX_AUDIO_TIMESTAMP_OFFSET_US:%d!",
+                audioTimestampPositionFrames, framesToDurationUs(audioTimestampPositionFrames), playbackPositionUs, Math.abs(framesToDurationUs(audioTimestampPositionFrames) - playbackPositionUs),
+                MAX_AUDIO_TIMESTAMP_OFFSET_US ));
       listener.onPositionFramesMismatch(
           audioTimestampPositionFrames,
           audioTimestampSystemTimeUs,
@@ -491,6 +511,7 @@ import java.lang.reflect.Method;
    *
    * @return The playback head position, in frames.
    */
+  @SuppressLint("LongLogTag")
   private long getPlaybackHeadPosition() {
     AudioTrack audioTrack = Assertions.checkNotNull(this.audioTrack);
     if (stopTimestampUs != C.TIME_UNSET) {
@@ -501,6 +522,7 @@ import java.lang.reflect.Method;
     }
 
     int state = audioTrack.getPlayState();
+    Log.d("AudioTrackPositionTracker", String.format("audioTrack: %s, getPlaybackHeadPosition: state: %d", audioTrack, state));
     if (state == PLAYSTATE_STOPPED) {
       // The audio track hasn't been started.
       return 0;
@@ -528,7 +550,8 @@ import java.lang.reflect.Method;
         // {@link #FORCE_RESET_WORKAROUND_TIMEOUT_MS} has elapsed.
         if (forceResetWorkaroundTimeMs == C.TIME_UNSET) {
           forceResetWorkaroundTimeMs = SystemClock.elapsedRealtime();
-        }
+            Log.d("AudioTrackPositionTracker", String.format("setting forceResetWorkaroundTimeMs to: %d", forceResetWorkaroundTimeMs));
+           }
         return lastRawPlaybackHeadPosition;
       } else {
         forceResetWorkaroundTimeMs = C.TIME_UNSET;

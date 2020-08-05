@@ -18,6 +18,8 @@ package com.google.android.exoplayer2.audio;
 import android.annotation.TargetApi;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
+import android.util.Log;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
@@ -137,6 +139,7 @@ import java.lang.annotation.RetentionPolicy;
           // current audio route. Poll infrequently in case the route changes later.
           // TODO: Ideally we should listen for audio route changes in order to detect when a
           // timestamp becomes available again.
+            Log.w("AudioTimestampPoller", String.format("maybePollTimestamp with STATE_NO_TIMESTAMP! "));
           updateState(STATE_NO_TIMESTAMP);
         }
         break;
@@ -212,6 +215,7 @@ import java.lang.annotation.RetentionPolicy;
   /** Resets polling. Should be called whenever the audio track is paused or resumed. */
   public void reset() {
     if (audioTimestamp != null) {
+        Log.w("AudioTimestampPoller", String.format("reset with updateState(STATE_INITIALZING)"));
       updateState(STATE_INITIALIZING);
     }
   }
