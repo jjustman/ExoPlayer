@@ -71,10 +71,45 @@ public final class InitializationChunk extends Chunk {
   @Override
   public void load() throws IOException, InterruptedException {
     DataSpec loadDataSpec = dataSpec.subrange(nextLoadPosition);
+    int retryCount = 0;
+
     try {
-      // Create and open the input.
-      ExtractorInput input = new DefaultExtractorInput(dataSource,
-          loadDataSpec.absoluteStreamPosition, dataSource.open(loadDataSpec));
+          // Create and open the input.
+          ExtractorInput input = null;
+          IOException pendingException = null;
+          IllegalStateException pendingIllegalStateException = null;
+
+        //jjustman-2020-08-05 - retry up to 3x for init segments
+          while(input == null && retryCount < 4) {
+              try {
+                  pendingException = null;
+                  pendingIllegalStateException = null;
+                  input = new DefaultExtractorInput(dataSource,
+                          loadDataSpec.absoluteStreamPosition, dataSource.open(loadDataSpec));
+              } catch (IOException ex) {
+                  retryCount++;
+                  pendingException = ex;
+                  input = null;
+
+                  Thread.sleep(1000);
+              } catch (IllegalStateException ex) {
+                  retryCount++;
+                  pendingIllegalStateException = ex;
+                  input = null;
+
+                  Thread.sleep(1000);
+
+              }
+          }
+
+          if(pendingException != null) {
+              throw pendingException;
+          }
+        if(pendingIllegalStateException != null) {
+            throw pendingIllegalStateException;
+        }
+
+
       if (nextLoadPosition == 0) {
         extractorWrapper.init(
             /* trackOutputProvider= */ null,
