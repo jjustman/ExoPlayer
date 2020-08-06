@@ -563,6 +563,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     updatePlaybackPositions();
     long rendererPositionElapsedRealtimeUs = SystemClock.elapsedRealtime() * 1000;
 
+    //jjustman-2020-08-05 - ROUTE/DASH playbackInfo.positionUs: 0 for live mpd, backBufferDurationUs: 250,000 which means we don't ever purge our mediaPeriod entries
     playingPeriodHolder.mediaPeriod.discardBuffer(playbackInfo.positionUs - backBufferDurationUs,
         retainBackBufferFromKeyframe);
 

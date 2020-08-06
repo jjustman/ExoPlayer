@@ -669,7 +669,14 @@ public final class C {
   public static final int SELECTION_REASON_CUSTOM_BASE = 10000;
 
   /** A default size in bytes for an individual allocation that forms part of a larger buffer. */
-  public static final int DEFAULT_BUFFER_SEGMENT_SIZE = 64 * 1024;
+  //jjustman-2020-08-05 - changing from 64 * 1024 to 4 * 1024 to help manage ~30 MB of byte[] and DefaultAllocator/Allocation "junk"
+          //jjustman - change ddown to 256 bytes
+          //especally due to usages alal   public static final int DEFAULT_VIDEO_BUFFER_SIZE = 500 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
+          //in defaultLoadControl
+          //change dback to 1024?
+          //change to 16*1024?
+          //change back to 64?
+  public static final int DEFAULT_BUFFER_SEGMENT_SIZE = 1024;
 
   /** "cenc" scheme type name as defined in ISO/IEC 23001-7:2016. */
   @SuppressWarnings("ConstantField")

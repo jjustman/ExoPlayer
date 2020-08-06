@@ -316,7 +316,9 @@ import java.lang.reflect.Method;
         && writtenFrames > 0
         && SystemClock.elapsedRealtime() - forceResetWorkaroundTimeMs
             >= FORCE_RESET_WORKAROUND_TIMEOUT_MS;
-      Log.w("AudioTrackPositionTracker", String.format("isStalled: %s", ret));
+    if(ret) {
+        Log.w("AudioTrackPositionTracker", String.format("isStalled: %s", ret));
+    }
     return ret;
   }
 
@@ -522,9 +524,11 @@ import java.lang.reflect.Method;
     }
 
     int state = audioTrack.getPlayState();
-    Log.d("AudioTrackPositionTracker", String.format("audioTrack: %s, getPlaybackHeadPosition: state: %d", audioTrack, state));
+
     if (state == PLAYSTATE_STOPPED) {
-      // The audio track hasn't been started.
+        Log.d("AudioTrackPositionTracker", String.format("audioTrack: %s, getPlaybackHeadPosition: state: %d", audioTrack, state));
+
+        // The audio track hasn't been started.
       return 0;
     }
 

@@ -15,6 +15,8 @@
  */
 package com.google.android.exoplayer2.source;
 
+import android.util.Log;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.FormatHolder;
@@ -39,7 +41,9 @@ import com.google.android.exoplayer2.util.Util;
 
   }
 
-  private static final int SAMPLE_CAPACITY_INCREMENT = 1000;
+  //jjustman 2020-08-06 - this would be about 16s of video samples - 1000 / 59.94 -> 16s?
+//  private static final int SAMPLE_CAPACITY_INCREMENT = 1000; // this would be about 16s of video samples(?!)
+  private static final int SAMPLE_CAPACITY_INCREMENT = 100;
 
   private int capacity;
   private int[] sourceIds;
@@ -347,12 +351,21 @@ import com.google.android.exoplayer2.util.Util;
    *     {@link C#POSITION_UNSET} if no discarding of data is necessary.
    */
   public synchronized long discardTo(long timeUs, boolean toKeyframe, boolean stopAtReadPosition) {
-    if (length == 0 || timeUs < timesUs[relativeFirstIndex]) {
-      return C.POSITION_UNSET;
-    }
+      //jjustman-2020-08-05 - hack where timeUs: < 0 for live MPD playback
+      if(length > 60 && timeUs < 0) {
+          timeUs = timesUs[length-60];
+      } else {
+
+          if (length == 0 || timeUs < timesUs[relativeFirstIndex]) {
+              return C.POSITION_UNSET;
+          }
+      }
     int searchLength = stopAtReadPosition && readPosition != length ? readPosition + 1 : length;
     int discardCount = findSampleBefore(relativeFirstIndex, searchLength, timeUs, toKeyframe);
     if (discardCount == -1) {
+        Log.d("SampleMetadataQueue", String.format("discardTo: returning C.POSITION_UNSET, timeUs: %d, toKeyframe: %s, stopAtReadPosition: %s, discardCount: %s",
+                timeUs, toKeyframe, stopAtReadPosition, discardCount));
+
       return C.POSITION_UNSET;
     }
     return discardSamples(discardCount);
@@ -425,6 +438,7 @@ import com.google.android.exoplayer2.util.Util;
 
     length++;
     if (length == capacity) {
+        //jjustman-2020-08-06 - TODO: don't just grow infiniate?
       // Increase the capacity.
       int newCapacity = capacity + SAMPLE_CAPACITY_INCREMENT;
       int[] newSourceIds = new int[newCapacity];

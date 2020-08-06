@@ -31,14 +31,14 @@ public class DefaultLoadControl implements LoadControl {
    * The default minimum duration of media that the player will attempt to ensure is buffered at all
    * times, in milliseconds. This value is only applied to playbacks without video.
    */
-  public static final int DEFAULT_MIN_BUFFER_MS = 1000;
+  public static final int DEFAULT_MIN_BUFFER_MS = 500;
 
   /**
    * The default maximum duration of media that the player will attempt to buffer, in milliseconds.
    * For playbacks with video, this is also the default minimum duration of media that the player
    * will attempt to ensure is buffered.
    */
-  public static final int DEFAULT_MAX_BUFFER_MS = 1000; //50000;
+  public static final int DEFAULT_MAX_BUFFER_MS = 500; //50000; //jjustman-2020-08-06 - reduce down to 5 from 50s?
 
   /**
    * The default duration of media that must be buffered for playback to start or resume following a
@@ -56,9 +56,19 @@ public class DefaultLoadControl implements LoadControl {
    * The default target buffer size in bytes. The value ({@link C#LENGTH_UNSET}) means that the load
    * control will calculate the target buffer size based on the selected tracks.
    */
-  public static final int DEFAULT_TARGET_BUFFER_BYTES = C.LENGTH_UNSET;
+  //jjustman-2020-08-06 - set to 32KB from DEFAULT_TARGET_BUFFER_BYTES
+  public static final int DEFAULT_TARGET_BUFFER_BYTES = 32000;
 
   /** The default prioritization of buffer time constraints over size constraints. */
+  /*
+  jjustman-2020-08-06 - don't set to false, will stall playback after 2s at:
+          2020-08-06 00:58:15.763 10351-10487/org.ngbp.libatsc3 D/AudioTrack: getTimestamp_l(98): device stall time corrected using current time 843079210248962
+2020-08-06 00:58:15.774 10351-10487/org.ngbp.libatsc3 W/AudioTrack: getTimestamp_l(98): retrograde timestamp time corrected, 843079204046150 < 843079210248962
+2020-08-06 00:58:16.554 10351-10487/org.ngbp.libatsc3 I/DashMediaSource: getAdjustedWindowDefaultStartPositionU, retuning value: -551000, windowDefaultStartPositionUs: 1000000, snapIndex.getTimeUs(segmentNum: 797212956): 2002000, defaultStartPositionInPeriodUs: 3553000;
+2020-08-06 00:58:17.561 10351-10487/org.ngbp.libatsc3 I/DashMediaSource: getAdjustedWindowDefaultStartPositionU, retuning value: 444000, windowDefaultStartPositionUs: 1000000, snapIndex.getTimeUs(segmentNum: 797212957): 4004000, defaultStartPositionInPeriodUs: 4560000;
+2020-08-06 00:58:17.695 10351-10487/org.ngbp.libatsc3 W/AudioTrackPositionTracker: pause invoked
+2020-08-06 00:58:17.695 10351-10487/org.ngbp.libatsc3 W/AudioTimestampPoller: reset with updateState(STATE_INITIALZING)
+           */
   public static final boolean DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS = true;
 
   /** The default back buffer duration in milliseconds. */

@@ -115,14 +115,25 @@ public class ContainerMediaChunk extends BaseMediaChunk {
   @SuppressWarnings("NonAtomicVolatileUpdate")
   @Override
   public final void load() throws IOException, InterruptedException {
-    DataSpec loadDataSpec = null;
-    try {
-      loadDataSpec = dataSpec.subrange(nextLoadPosition);
-    } catch (Exception ex) {
-      Log.w("ContainerMediaChunk",String.format("catching fileNotFoundException for local periodic dash error handling, ex: %s", ex));
+      int retryCount = 0;
+      int retryMax = 10;  //retry at tight interval for 2s, otherwise bail on this sample
 
-      loadCanceled = true;
+    DataSpec loadDataSpec = null;
+
+    while(loadDataSpec == null  && retryCount++ < retryMax) {
+        try {
+            loadDataSpec = dataSpec.subrange(nextLoadPosition);
+        } catch (Exception ex) {
+            Log.w("ContainerMediaChunk", String.format("catching fileNotFoundException for local periodic dash error handling, ex: %s", ex));
+            Thread.sleep(200);
+
+            loadCanceled = false;
+        }
     }
+    if(loadDataSpec == null && retryCount == retryMax) {
+        loadCanceled = true;
+    }
+
     try {
       // Create and open the input.
       ExtractorInput input = new DefaultExtractorInput(dataSource,
@@ -152,7 +163,7 @@ public class ContainerMediaChunk extends BaseMediaChunk {
     } catch (Exception ex) {
       Log.w("ContainerMediaChunk",String.format("catching fileNotFoundException for local periodic dash error handling, ex: %s", ex));
         loadCanceled = true;
-        throw new InterruptedException("jj");
+        throw new InterruptedException("JJ:ContainerMediaChunk:fileNotFoundException ex");
     } finally {
       Util.closeQuietly(dataSource);
     }

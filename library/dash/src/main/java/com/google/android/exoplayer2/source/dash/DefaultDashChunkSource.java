@@ -357,8 +357,10 @@ public class DefaultDashChunkSource implements DashChunkSource {
     if (segmentNum > lastAvailableSegmentNum
         || (missingLastSegment && segmentNum >= lastAvailableSegmentNum)) {
       // The segment is beyond the end of the period.
-        Log.w("DefaultDashChunkSource", String.format("getNextChunk with segmentNum:%d > lastAvailableSegmentNum: %d, missingLastSegment: %s", segmentNum, lastAvailableSegmentNum, missingLastSegment));
-
+        //only log if we are "missing" last segment?
+        if(missingLastSegment) {
+            Log.w("DefaultDashChunkSource", String.format("getNextChunk with segmentNum:%d > lastAvailableSegmentNum: %d, missingLastSegment: %s", segmentNum, lastAvailableSegmentNum, missingLastSegment));
+        }
         //jjustman-2020-05-13 - disable end of stream marking for route/dash?
         // out.endOfStream = periodEnded;
       return;
@@ -500,7 +502,9 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
   private long resolveTimeToLiveEdgeUs(long playbackPositionUs) {
     boolean resolveTimeToLiveEdgePossible = manifest.dynamic && liveEdgeTimeUs != C.TIME_UNSET;
-    Log.i("DefaultDashChunkSource",String.format("resolveTimeToLiveEdgeUs: resolveTimeToLiveEdgePossible: %s, playbackPositionUs: %d", resolveTimeToLiveEdgePossible, playbackPositionUs));
+    if(!resolveTimeToLiveEdgePossible) {
+        Log.i("DefaultDashChunkSource", String.format("resolveTimeToLiveEdgeUs: resolveTimeToLiveEdgePossible: %s, playbackPositionUs: %d", resolveTimeToLiveEdgePossible, playbackPositionUs));
+    }
     return resolveTimeToLiveEdgePossible ? liveEdgeTimeUs - playbackPositionUs : C.TIME_UNSET;
   }
 

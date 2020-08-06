@@ -23,8 +23,8 @@ import java.util.Arrays;
  * Default implementation of {@link Allocator}.
  */
 public final class DefaultAllocator implements Allocator {
-
-  private static final int AVAILABLE_EXTRA_CAPACITY = 100;
+    //jjustman-2020-08-05 - reduce this down to 16 for ROUTE/DASH live streaming
+  private static final int AVAILABLE_EXTRA_CAPACITY = 16; // todo change this back to 100?
 
   private final boolean trimOnReset;
   private final int individualAllocationSize;
