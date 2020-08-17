@@ -387,7 +387,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
 
     long seekTimeUs = queue.isEmpty() ? loadPositionUs : C.TIME_UNSET;
 
-      Log.w("DefaultDashChunkSource", String.format("creating newMediaChunk with seekTimeUs: %d, segmentNum: %d, maxSegmentCount: %d", seekTimeUs, segmentNum, maxSegmentCount));
+      //Log.w("DefaultDashChunkSource", String.format("creating newMediaChunk with seekTimeUs: %d, segmentNum: %d, maxSegmentCount: %d", seekTimeUs, segmentNum, maxSegmentCount));
 
         out.chunk =
         newMediaChunk(
@@ -503,7 +503,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
   private long resolveTimeToLiveEdgeUs(long playbackPositionUs) {
     boolean resolveTimeToLiveEdgePossible = manifest.dynamic && liveEdgeTimeUs != C.TIME_UNSET;
     if(!resolveTimeToLiveEdgePossible) {
-        Log.i("DefaultDashChunkSource", String.format("resolveTimeToLiveEdgeUs: resolveTimeToLiveEdgePossible: %s, playbackPositionUs: %d", resolveTimeToLiveEdgePossible, playbackPositionUs));
+        //Log.i("DefaultDashChunkSource", String.format("resolveTimeToLiveEdgeUs: resolveTimeToLiveEdgePossible: %s, playbackPositionUs: %d", resolveTimeToLiveEdgePossible, playbackPositionUs));
     }
     return resolveTimeToLiveEdgePossible ? liveEdgeTimeUs - playbackPositionUs : C.TIME_UNSET;
   }
@@ -780,7 +780,7 @@ public class DefaultDashChunkSource implements DashChunkSource {
         long periodStartUs = C.msToUs(manifest.getPeriod(periodIndex).startMs);
         long liveEdgeTimeInPeriodUs = liveEdgeTimeUs - periodStartUs;
 
-          long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
+        long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
 
           //jjustman-2020-03-11 - uncomment for exoplayer performance validation of timeShiftBufferDepthMs as 1000ms for exoplayer performance debugging:
           //Log.w("DefaultDashChunkSource", String.format("::getFirstAvailableSegmentNum - using manifest.timeShiftBufferDepthMs value of: %d", manifest.timeShiftBufferDepthMs));

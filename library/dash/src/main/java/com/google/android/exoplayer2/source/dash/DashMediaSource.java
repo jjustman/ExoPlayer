@@ -254,7 +254,7 @@ public final class DashMediaSource extends BaseMediaSource {
      * @throws IllegalArgumentException If {@link DashManifest#dynamic} is true.
      */
     public DashMediaSource createMediaSource(DashManifest manifest) {
-      Assertions.checkArgument(!manifest.dynamic);
+      // jjustman-2020-08-06 - DISABLE check - Assertions.checkArgument(!manifest.dynamic);
       isCreateCalled = true;
       if (streamKeys != null && !streamKeys.isEmpty()) {
         manifest = manifest.copy(streamKeys);
@@ -342,24 +342,24 @@ public final class DashMediaSource extends BaseMediaSource {
    * The default presentation delay for live streams. The presentation delay is the duration by
    * which the default start position precedes the end of the live window.
    */
-  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 100;
+  public static final long DEFAULT_LIVE_PRESENTATION_DELAY_MS = 0;
   /** @deprecated Use {@link #DEFAULT_LIVE_PRESENTATION_DELAY_MS}. */
   @Deprecated
   public static final long DEFAULT_LIVE_PRESENTATION_DELAY_FIXED_MS =
       DEFAULT_LIVE_PRESENTATION_DELAY_MS;
   /** @deprecated Use of this parameter is no longer necessary. */
-  @Deprecated public static final long DEFAULT_LIVE_PRESENTATION_DELAY_PREFER_MANIFEST_MS = -1;
+  @Deprecated public static final long DEFAULT_LIVE_PRESENTATION_DELAY_PREFER_MANIFEST_MS = 0;
 
   /**
    * The interval in milliseconds between invocations of {@link
    * SourceInfoRefreshListener#onSourceInfoRefreshed(MediaSource, Timeline, Object)} when the
    * source's {@link Timeline} is changing dynamically (for example, for incomplete live streams).
    */
-  private static final int NOTIFY_MANIFEST_INTERVAL_MS = 5000;
+  private static final int NOTIFY_MANIFEST_INTERVAL_MS = 1000;
   /**
    * The minimum default start position for live streams, relative to the start of the live window.
    */
-  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 100000;
+  private static final long MIN_LIVE_DEFAULT_START_POSITION_US = 1;
 
   private static final String TAG = "DashMediaSource";
 
@@ -563,9 +563,7 @@ public final class DashMediaSource extends BaseMediaSource {
         chunkSourceFactory,
         new DefaultCompositeSequenceableLoaderFactory(),
         new DefaultLoadErrorHandlingPolicy(minLoadableRetryCount),
-        livePresentationDelayMs == DEFAULT_LIVE_PRESENTATION_DELAY_PREFER_MANIFEST_MS
-            ? DEFAULT_LIVE_PRESENTATION_DELAY_MS
-            : livePresentationDelayMs,
+        livePresentationDelayMs == DEFAULT_LIVE_PRESENTATION_DELAY_PREFER_MANIFEST_MS ? DEFAULT_LIVE_PRESENTATION_DELAY_MS : livePresentationDelayMs,
         livePresentationDelayMs != DEFAULT_LIVE_PRESENTATION_DELAY_PREFER_MANIFEST_MS,
         /* tag= */ null);
     if (eventHandler != null && eventListener != null) {
@@ -602,11 +600,14 @@ public final class DashMediaSource extends BaseMediaSource {
     playerEmsgCallback = new DefaultPlayerEmsgCallback();
     expiredManifestPublishTimeUs = C.TIME_UNSET;
     if (sideloadedManifest) {
-      Assertions.checkState(!manifest.dynamic);
-      manifestCallback = null;
-      refreshManifestRunnable = null;
-      simulateManifestRefreshRunnable = null;
-      manifestLoadErrorThrower = new LoaderErrorThrower.Dummy();
+      //Assertions.checkState(!manifest.dynamic);
+      manifestCallback = new ManifestCallback();;
+      refreshManifestRunnable = this::startLoadingManifest;;
+      //simulateManifestRefreshRunnable = null;
+      //jjustman-2020-08-06 - hack to get us started for parsing ast?
+       simulateManifestRefreshRunnable = () -> processManifest(false);
+
+       manifestLoadErrorThrower = new LoaderErrorThrower.Dummy();
     } else {
       manifestCallback = new ManifestCallback();
       manifestLoadErrorThrower = new ManifestLoadErrorThrower();
@@ -1026,17 +1027,18 @@ public final class DashMediaSource extends BaseMediaSource {
           // minimumUpdatePeriod is set to 0. In such cases we shouldn't refresh unless there is
           // explicit signaling in the stream, according to:
           // http://azure.microsoft.com/blog/2014/09/13/dash-live-streaming-with-azure-media-service
-          minUpdatePeriodMs = 1000;
+          minUpdatePeriodMs = 250;
         }
         long nextLoadTimestampMs = manifestLoadStartTimestampMs + minUpdatePeriodMs;
-        long delayUntilNextLoadMs =
-            Math.max(0, nextLoadTimestampMs - SystemClock.elapsedRealtime());
+        long delayUntilNextLoadMs = Math.max(0, nextLoadTimestampMs - SystemClock.elapsedRealtime());
+
         scheduleManifestRefresh(delayUntilNextLoadMs);
       }
     }
   }
 
   private void scheduleManifestRefresh(long delayUntilNextLoadMs) {
+      //Log.i("DashMediaSource", String.format("scheduling scheduleManifestRefresh in %d Ms", delayUntilNextLoadMs));
     handler.postDelayed(refreshManifestRunnable, delayUntilNextLoadMs);
   }
 
@@ -1061,7 +1063,7 @@ public final class DashMediaSource extends BaseMediaSource {
   }
 
   private long getManifestLoadRetryDelayMillis() {
-    return Math.min((staleManifestReloadAttempt - 1) * 1000, 1000);
+    return Math.min((staleManifestReloadAttempt - 1) * 250, 250);
   }
 
   private <T> void startLoading(ParsingLoadable<T> loadable,
@@ -1240,6 +1242,15 @@ public final class DashMediaSource extends BaseMediaSource {
           return C.TIME_UNSET;
         }
       }
+
+      return windowDefaultStartPositionUs;
+
+      /*
+      jjustman-2020-08-06 test:
+
+      from github exoplayer / commit: 36f5c0
+
+
       // Attempt to snap to the start of the corresponding video segment.
       int periodIndex = 0;
       long defaultStartPositionInPeriodUs = offsetInFirstPeriodUs + windowDefaultStartPositionUs;
@@ -1274,11 +1285,11 @@ public final class DashMediaSource extends BaseMediaSource {
         long returnValue = windowDefaultStartPositionUs + snapIndex.getTimeUs(segmentNum)
                 - defaultStartPositionInPeriodUs;
 
-        Log.i("DashMediaSource", String.format("getAdjustedWindowDefaultStartPositionU, retuning value: %d, windowDefaultStartPositionUs: %d, snapIndex.getTimeUs(segmentNum: %d): %d, defaultStartPositionInPeriodUs: %d;",
-                returnValue, windowDefaultStartPositionUs, segmentNum, snapIndex.getTimeUs(segmentNum), defaultStartPositionInPeriodUs));
+//        Log.i("DashMediaSource", String.format("getAdjustedWindowDefaultStartPositionU, retuning value: %d, windowDefaultStartPositionUs: %d, snapIndex.getTimeUs(segmentNum: %d): %d, defaultStartPositionInPeriodUs: %d;",
+//                returnValue, windowDefaultStartPositionUs, segmentNum, snapIndex.getTimeUs(segmentNum), defaultStartPositionInPeriodUs));
 
         return returnValue;
-
+ */
     }
 
     @Override

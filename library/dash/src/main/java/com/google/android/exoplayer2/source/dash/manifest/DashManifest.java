@@ -171,12 +171,11 @@ public class DashManifest implements FilterableManifest<DashManifest> {
       List<Period> periods) {
     this.availabilityStartTimeMs = availabilityStartTimeMs;
     this.durationMs = durationMs;
-    //jjustman-2020-03-11 - fix minBufferTimeMS to 1000ms
-    this.minBufferTimeMs = 1000; //minBufferTimeMS - jjustman-2020-03-11 - set to 0?
-    this.dynamic = true; //dynamic;
-    this.minUpdatePeriodMs = minUpdatePeriodMs;
-    this.timeShiftBufferDepthMs = 1000;
-    this.suggestedPresentationDelayMs = 0; //jjustman-2020-03-11 - fix value to 0 for suggestedPresentationDelayMs;
+    this.minBufferTimeMs = 10; //jjustman-2020-08-06 - OK value
+    this.dynamic = true; //jjustman-2020-08-06 - patch to FALSE true; //dynamic;
+    this.minUpdatePeriodMs = 5000;  //don't overly agressively reload our MPD or other media fragments since we will push a MPD change update directly to exoplayer on patch
+    this.timeShiftBufferDepthMs = 1000; //IMPORTANT - this must be at least 1000 (?) otherwise we fail in the DefaultDashChunkSource calculation:           long bufferDepthUs = C.msToUs(manifest.timeShiftBufferDepthMs);
+    this.suggestedPresentationDelayMs = 0; //jjustman-2020-08-06: value of 0 is OK so far
     this.publishTimeMs = publishTimeMs;
     this.programInformation = programInformation;
     this.utcTiming = utcTiming;

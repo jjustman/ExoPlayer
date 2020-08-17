@@ -31,33 +31,33 @@ public class DefaultLoadControl implements LoadControl {
    * The default minimum duration of media that the player will attempt to ensure is buffered at all
    * times, in milliseconds. This value is only applied to playbacks without video.
    */
-  public static final int DEFAULT_MIN_BUFFER_MS = 500;
+  public static final int DEFAULT_MIN_BUFFER_MS = 100;
 
   /**
    * The default maximum duration of media that the player will attempt to buffer, in milliseconds.
    * For playbacks with video, this is also the default minimum duration of media that the player
    * will attempt to ensure is buffered.
    */
-  public static final int DEFAULT_MAX_BUFFER_MS = 500; //50000; //jjustman-2020-08-06 - reduce down to 5 from 50s?
+  public static final int DEFAULT_MAX_BUFFER_MS = 100; //50000; //jjustman-2020-08-06 - reduce down to 5 from 50s?
 
   /**
    * The default duration of media that must be buffered for playback to start or resume following a
    * user action such as a seek, in milliseconds.
    */
-  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_MS = 100; //1000;
+  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_MS = 0; //jjustman-2020-08-06 - set to 0 1000;
 
   /**
    * The default duration of media that must be buffered for playback to resume after a rebuffer, in
    * milliseconds. A rebuffer is defined to be caused by buffer depletion rather than a user action.
    */
-  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 100; //1000;
+  public static final int DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 0; // jjustman-2020-08-06 //1000;
 
   /**
    * The default target buffer size in bytes. The value ({@link C#LENGTH_UNSET}) means that the load
    * control will calculate the target buffer size based on the selected tracks.
    */
   //jjustman-2020-08-06 - set to 32KB from DEFAULT_TARGET_BUFFER_BYTES
-  public static final int DEFAULT_TARGET_BUFFER_BYTES = 32000;
+  public static final int DEFAULT_TARGET_BUFFER_BYTES = 1024;
 
   /** The default prioritization of buffer time constraints over size constraints. */
   /*
@@ -72,16 +72,17 @@ public class DefaultLoadControl implements LoadControl {
   public static final boolean DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS = true;
 
   /** The default back buffer duration in milliseconds. */
-  public static final int DEFAULT_BACK_BUFFER_DURATION_MS = 250; //0
+  public static final int DEFAULT_BACK_BUFFER_DURATION_MS = 100; // ~6 frames?
 
   /** The default for whether the back buffer is retained from the previous keyframe. */
   public static final boolean DEFAULT_RETAIN_BACK_BUFFER_FROM_KEYFRAME = true; //
 
   /** A default size in bytes for a video buffer. */
-  public static final int DEFAULT_VIDEO_BUFFER_SIZE = 500 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
+  /* jjustman - 2020-08-06 - set to 2 * default_buffer segment size */
+  public static final int DEFAULT_VIDEO_BUFFER_SIZE = 2 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
 
   /** A default size in bytes for an audio buffer. */
-  public static final int DEFAULT_AUDIO_BUFFER_SIZE = 54 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
+  public static final int DEFAULT_AUDIO_BUFFER_SIZE = 2 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
 
   /** A default size in bytes for a text buffer. */
   public static final int DEFAULT_TEXT_BUFFER_SIZE = 2 * C.DEFAULT_BUFFER_SEGMENT_SIZE;
@@ -414,10 +415,13 @@ public class DefaultLoadControl implements LoadControl {
       long bufferedDurationUs, float playbackSpeed, boolean rebuffering) {
     bufferedDurationUs = Util.getPlayoutDurationForMediaDuration(bufferedDurationUs, playbackSpeed);
     long minBufferDurationUs = rebuffering ? bufferForPlaybackAfterRebufferUs : bufferForPlaybackUs;
-    return minBufferDurationUs <= 0
+    return true; //jjustman-2020-08-06 - HACK for forcing playback start without waiting for first period
+      /* minBufferDurationUs <= 0
         || bufferedDurationUs >= minBufferDurationUs
         || (!prioritizeTimeOverSizeThresholds
             && allocator.getTotalBytesAllocated() >= targetBufferSize);
+
+       */
   }
 
   /**

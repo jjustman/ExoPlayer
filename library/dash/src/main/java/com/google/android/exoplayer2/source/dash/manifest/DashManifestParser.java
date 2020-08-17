@@ -102,12 +102,14 @@ public class DashManifestParser extends DefaultHandler
     long minBufferTimeMs = 1000; //jjustman-2020-03-11 - changed from 1000 to 0 for testing
       // jjustman-2020-02-28 - parseDuration(xpp, "minBufferTime", C.TIME_UNSET);
     String typeString = xpp.getAttributeValue(null, "type");
+    //jjustman-2020-08-06 --- TESTING tod isable dynamic
     boolean dynamic = typeString != null && "dynamic".equals(typeString);
-    long minUpdateTimeMs = 1000;
+
+    long minUpdateTimeMs = 0; //setting to 0 with sideloaded mpd
         //jjustman-2020-02-28
       // dynamic ? parseDuration(xpp, "minimumUpdatePeriod", C.TIME_UNSET)
       //  : C.TIME_UNSET;
-    long timeShiftBufferDepthMs = 1000; //jjustman-2020-02-28 - dynamic
+    long timeShiftBufferDepthMs = 0; //jjustman-2020-02-28 - dynamic
         //? parseDuration(xpp, "timeShiftBufferDepth", C.TIME_UNSET) : C.TIME_UNSET;
     long suggestedPresentationDelayMs = 0;
       // dynamic
@@ -160,9 +162,11 @@ public class DashManifestParser extends DefaultHandler
       if (nextPeriodStartMs != C.TIME_UNSET) {
         // If we know the end time of the final period, we can use it as the duration.
         durationMs = nextPeriodStartMs;
-      } else if (!dynamic) {
-        throw new ParserException("Unable to determine duration of static manifest.");
       }
+//jjustman-2020-08-06 - disable dynamic check for manifest duration
+//      else if (!dynamic) {
+//        throw new ParserException("Unable to determine duration of static manifest.");
+//      }
     }
 
     if (periods.isEmpty()) {

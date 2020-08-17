@@ -551,6 +551,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     long operationStartTimeMs = clock.uptimeMillis();
     updatePeriods();
     if (!queue.hasPlayingPeriod()) {
+        Log.i("doSomeWork", "!queue.hasPlayingPeriod()");
       // We're still waiting for the first period to be prepared.
       maybeThrowPeriodPrepareError();
       scheduleNextWork(operationStartTimeMs, PREPARING_SOURCE_INTERVAL_MS);
@@ -620,6 +621,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         || playbackInfo.playbackState == Player.STATE_BUFFERING) {
       scheduleNextWork(operationStartTimeMs, RENDERING_INTERVAL_MS);
     } else if (enabledRenderers.length != 0 && playbackInfo.playbackState != Player.STATE_ENDED) {
+        //Log.w("exoPlayerImpl", "scheduleNextWork with IDLE_INTERVAL_MS: 1000ms");
       scheduleNextWork(operationStartTimeMs, IDLE_INTERVAL_MS);
     } else {
       handler.removeMessages(MSG_DO_SOME_WORK);

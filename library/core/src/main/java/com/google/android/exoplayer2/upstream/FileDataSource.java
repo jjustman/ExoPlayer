@@ -18,6 +18,8 @@ package com.google.android.exoplayer2.upstream;
 import android.net.Uri;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.util.Log;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -62,6 +64,8 @@ public final class FileDataSource extends BaseDataSource {
     try {
       uri = dataSpec.uri;
       transferInitializing(dataSpec);
+      //Log.d("FileDataSource", "opening RandomAccessFile with "+dataSpec.uri.getPath());
+
       file = new RandomAccessFile(dataSpec.uri.getPath(), "r");
       file.seek(dataSpec.position);
       bytesRemaining = dataSpec.length == C.LENGTH_UNSET ? file.length() - dataSpec.position

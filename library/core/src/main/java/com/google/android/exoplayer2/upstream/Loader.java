@@ -501,7 +501,7 @@ public final class Loader implements LoaderErrorThrower {
     }
 
     private long getRetryDelayMillis() {
-      return Math.min((errorCount - 1) * 1000, 1000);
+      return Math.min((errorCount - 1) * 250, 250);
     }
 
   }
